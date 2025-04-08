@@ -8,15 +8,16 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, Character
-#from models import Person
+from models import db, User, Planet, Character, Favorite_character
+# from models import Person
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
+        "postgres://", "postgresql://")
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -27,14 +28,19 @@ CORS(app)
 setup_admin(app)
 
 # Handle/serialize errors like a JSON object
+
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # generate sitemap with all your endpoints
+
+
 @app.route('/')
 def sitemap():
     return generate_sitemap(app)
+
 
 @app.route('/user', methods=['GET'])
 def get_user():
@@ -42,11 +48,13 @@ def get_user():
     users_list = [userData.serialize() for userData in users]
     return jsonify(users_list), 200
 
+
 @app.route('/planet', methods=['GET'])
 def get_planet():
     planets = Planet.query.all()
     planets_list = [planet.serialize() for planet in planets]
     return jsonify(planets_list), 200
+
 
 @app.route('/character', methods=['GET'])
 def get_charc():
@@ -54,20 +62,70 @@ def get_charc():
     users_list = [character.serialize() for character in characters]
     return jsonify(users_list), 200
 
+@app.route('/fav_char', methods=['GET'])
+def get_fav_char():
+    fav_chars = Favorite_character.query.all()
+    fav_char_list = [fav_char.serialize() for fav_char in fav_chars]
+    return jsonify(fav_char_list), 200
+
 @app.route('/user', methods=['POST'])
 def user_post():
     data = request.get_json()
     new_user = User(
-        
-        email = data["email"],
-        password = data["password"],
-        is_active = data["is_active"]
+
+        email=data["email"],
+        password=data["password"],
+        is_active=data["is_active"]
     )
     db.session.add(new_user)
     db.session.commit()
     return jsonify(new_user.serialize()), 200
-    
-    
+
+
+@app.route('/character', methods=['POST'])
+def person_post():
+    data = request.get_json()
+    new_person = Character(
+
+        name=data["name"],
+        age=data["age"],
+        height=data["height"],
+        weight=data["weight"]
+
+    )
+    db.session.add(new_person)
+    db.session.commit()
+    return jsonify(new_person.serialize()), 200
+
+@app.route('/planet', methods=['POST'])
+def planet_post():
+    data = request.get_json()
+    new_planet = Planet(
+
+        name=data["name"],
+        age=data["age"],
+        color=data["color"],
+        population=data["population"],
+        density=data["density"]
+    )
+    db.session.add(new_planet)
+    db.session.commit()
+    return jsonify(new_planet.serialize()), 200
+
+
+@app.route('/fav_char', methods=['POST'])
+def fav_char_post():
+    data = request.get_json()
+    new_char = Favorite_character(
+       
+        user_id= data["user_id"],
+        character_id= data["character_id"]
+    )
+    db.session.add(new_char)
+    db.session.commit()
+    return jsonify(new_char.serialize()), 200
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

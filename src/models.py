@@ -1,10 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
@@ -21,6 +22,7 @@ class User(db.Model):
 
 
 class Character(db.Model):
+    __tablename__ = "character"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=False, nullable=False)
     age: Mapped[str] = mapped_column(String(5),nullable=False)
@@ -51,11 +53,25 @@ class Planet(db.Model):
             "id": self.id,
             "name": self.name,
             "age": self.age,
-            "color": self.age,
-            "population": self.age,
+            "color": self.color,
+            "population": self.population,
             "density": self.density
           }    
 
 
+class Favorite_character(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey ('user.id'), nullable=False)
+    character_id: Mapped[int] = mapped_column(ForeignKey ('character.id'), nullable=False)
+    user: Mapped["User"] = db.relationship("User")
+    character: Mapped["Character"] = db.relationship("Character")
+    
+    def serialize(self):
+     return {
+        "id": self.id,
+        "user_id": self.user.email,  # Access email via the user relationship
+        "character_id": self.character.name,  # Access name via the character relationship
+
+    }
 
 

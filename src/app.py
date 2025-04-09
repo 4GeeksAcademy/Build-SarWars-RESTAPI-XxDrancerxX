@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, Character, Favorite_character
+from models import db, User, Planet, Character, Favorite_character, Favorite_Planets
 # from models import Person
 
 app = Flask(__name__)
@@ -42,12 +42,27 @@ def sitemap():
     return generate_sitemap(app)
 
 
+@app.route('/user/<int:user_id>', methods=['GET'])
+def get_one_user(user_id):
+    user = User.query.get(user_id)
+    return jsonify(user.serialize()), 200
+
+
+       
+
 @app.route('/user', methods=['GET'])
 def get_user():
     users = User.query.all()
     users_list = [userData.serialize() for userData in users]
     return jsonify(users_list), 200
 
+
+
+@app.route('/planet/<int:planet_id>', methods=['GET'])
+def get_one_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    return jsonify(planet.serialize()), 200
+           
 
 @app.route('/planet', methods=['GET'])
 def get_planet():
@@ -62,11 +77,31 @@ def get_charc():
     users_list = [character.serialize() for character in characters]
     return jsonify(users_list), 200
 
+@app.route('/character/<int:character_id>', methods=['GET'])
+def get_one_character(character_id):
+    get_character = Character.query.get(character_id)
+    return jsonify(get_character.serialize()), 200
+
 @app.route('/fav_char', methods=['GET'])
 def get_fav_char():
     fav_chars = Favorite_character.query.all()
     fav_char_list = [fav_char.serialize() for fav_char in fav_chars]
     return jsonify(fav_char_list), 200
+
+@app.route('/fav_planets', methods=['GET'])
+def get_fav_planets():
+    fav_planets = Favorite_Planets.query.all()
+    fav_planets_list = [fav_planet.serialize() for fav_planet in fav_planets]
+    return jsonify(fav_planets_list), 200
+
+
+
+   
+    return jsonify({
+        "favorite_people": favorite_characters_list,
+        "favorite_planets": favorite_planets_list
+    }), 200
+    
 
 @app.route('/user', methods=['POST'])
 def user_post():
@@ -119,11 +154,26 @@ def fav_char_post():
     new_char = Favorite_character(
        
         user_id= data["user_id"],
-        character_id= data["character_id"]
+        character_id= data["character_id"],
+        
     )
     db.session.add(new_char)
     db.session.commit()
     return jsonify(new_char.serialize()), 200
+
+
+@app.route('/fav_planets', methods=['POST'])
+def fav_planets_post():
+    data = request.get_json()
+    new_fav_planets = Favorite_Planets(
+       
+        user_id= data["user_id"],
+        planet_id= data["planet_id"],        
+       
+    )
+    db.session.add(new_fav_planets)
+    db.session.commit()
+    return jsonify(new_fav_planets.serialize()), 200
 
 
 # this only runs if `$ python src/app.py` is executed

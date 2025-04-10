@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship,  backref
+
+
 
 db = SQLAlchemy()
 
@@ -12,6 +14,12 @@ class User(db.Model):
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+    
+
+
+
+
+
 
     def serialize(self):
         return {
@@ -64,30 +72,26 @@ class Favorite_character(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
     character_id: Mapped[int] = mapped_column(ForeignKey('character.id'), nullable=False)
-    user: Mapped["User"] = db.relationship("User")
+    user: Mapped["User"] = db.relationship("User", backref=backref("favorite_characters", cascade="all, delete-orphan"))
     character: Mapped["Character"] = db.relationship("Character")
 
     def serialize(self):
         return {
             "id": self.id,
-            "user_id": self.user.id,              
-            "character_id": self.character.id,
-            
+            "user_id": self.user_id,
+            "character_id": self.character_id,
         }
-
 
 class Favorite_Planets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
     planet_id: Mapped[int] = mapped_column(ForeignKey('planet.id'), nullable=False)
-    user: Mapped["User"] = db.relationship("User")
+    user: Mapped["User"] = db.relationship("User", backref=backref("favorite_planets", cascade="all, delete-orphan"))
     planet: Mapped["Planet"] = db.relationship("Planet")
-
+    
     def serialize(self):
         return {
             "id": self.id,
-            "user_id": self.user.id,
-            "planet_id": self.planet.id,
-            
+            "user_id": self.user_id,
+            "planet_id": self.planet_id,
         }
-

@@ -9,7 +9,12 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, Planet, Character, Favorite_character, Favorite_Planets
-# from models import Person
+import logging
+from sqlalchemy.orm import joinedload
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -56,6 +61,30 @@ def get_user():
     users_list = [userData.serialize() for userData in users]
     return jsonify(users_list), 200
 
+# [GET] /users/favorites
+@app.route('/user/<int:user_id>/all_favorites', methods=['GET'])
+def get_favorites_user(user_id):
+    try:
+        user = User.query.get(user_id)
+        if user is None:
+            logger.warning(f"User with ID {user_id} not found")
+            return jsonify({"error": "User not found"}), 404
+        favorite_characters = user.favorite_characters
+        favorite_planets = user.favorite_planets
+        
+        favorite_characters_list = [fav_char.serialize() for fav_char in favorite_characters]
+        favorite_planets_list = [fav_planet.serialize() for fav_planet in favorite_planets]
+        
+        response = {
+            "user_id": user_id,
+            "favorite_characters": favorite_characters_list,
+            "favorite_planets": favorite_planets_list
+        }
+        logger.info(f"Successfully fetched favorites for user ID {user_id}")
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"Error fetching favorites for user ID {user_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/planet/<int:planet_id>', methods=['GET'])
@@ -168,6 +197,9 @@ def fav_planets_post():
     return jsonify(new_fav_planets.serialize()), 200
 
 
+
+
+
 @app.route('/fav_planets/<int:fav_planet_id>', methods=['DELETE'])
 def delete_planet(fav_planet_id):
     planet = Favorite_Planets.query.filter_by(id=fav_planet_id).first()
@@ -181,6 +213,19 @@ def delete_planet(fav_planet_id):
     db.session.commit()
     return jsonify(response), 200
 
+@app.route('/fav_char/<int:fav_char_id>', methods=['DELETE'])
+def delete_fav_char(fav_char_id):
+    char = Favorite_character.query.filter_by(id=fav_char_id).first()
+    if char is None:
+        return jsonify({"error": "Favorite char not found"}), 404        
+    response = {
+        "message": "favorite char was deleted",
+        "char": char.serialize()
+    }
+    db.session.delete(char)
+    db.session.commit()
+    return jsonify(response), 200
+
 
 
 
@@ -189,4 +234,6 @@ def delete_planet(fav_planet_id):
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
+
+
 

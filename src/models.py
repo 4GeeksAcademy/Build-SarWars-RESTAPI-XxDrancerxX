@@ -41,6 +41,7 @@ class Character(db.Model):
 
 
 class Planet(db.Model):
+    __tablename__ = "planet"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=False, nullable=False)
     age: Mapped[str] = mapped_column(String(5), nullable=False)
@@ -62,8 +63,7 @@ class Planet(db.Model):
 class Favorite_character(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
-    character_id: Mapped[int] = mapped_column(
-        ForeignKey('character.id'), nullable=False)
+    character_id: Mapped[int] = mapped_column(ForeignKey('character.id'), nullable=False)
     user: Mapped["User"] = db.relationship("User")
     character: Mapped["Character"] = db.relationship("Character")
 
@@ -90,3 +90,4 @@ class Favorite_Planets(db.Model):
             "planet_id": self.planet.id,
             
         }
+

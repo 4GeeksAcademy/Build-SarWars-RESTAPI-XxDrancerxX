@@ -93,14 +93,6 @@ def get_fav_planets():
     fav_planets = Favorite_Planets.query.all()
     fav_planets_list = [fav_planet.serialize() for fav_planet in fav_planets]
     return jsonify(fav_planets_list), 200
-
-
-
-   
-    return jsonify({
-        "favorite_people": favorite_characters_list,
-        "favorite_planets": favorite_planets_list
-    }), 200
     
 
 @app.route('/user', methods=['POST'])
@@ -176,7 +168,25 @@ def fav_planets_post():
     return jsonify(new_fav_planets.serialize()), 200
 
 
+@app.route('/fav_planets/<int:fav_planet_id>', methods=['DELETE'])
+def delete_planet(fav_planet_id):
+    planet = Favorite_Planets.query.filter_by(id=fav_planet_id).first()
+    if planet is None:
+        return jsonify({"error": "Favorite planet not found"}), 404        
+    response = {
+        "message": "favorite planet was deleted",
+        "planet": planet.serialize()
+    }
+    db.session.delete(planet)
+    db.session.commit()
+    return jsonify(response), 200
+
+
+
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
+

@@ -50,6 +50,8 @@ def sitemap():
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_one_user(user_id):
     user = User.query.get(user_id)
+    if not user:
+        return jsonify("Error, user is not found"),404    
     return jsonify(user.serialize()), 200
 
 
@@ -62,34 +64,14 @@ def get_user():
     return jsonify(users_list), 200
 
 # [GET] /users/favorites
-@app.route('/user/<int:user_id>/all_favorites', methods=['GET'])
-def get_favorites_user(user_id):
-    try:
-        user = User.query.get(user_id)
-        if user is None:
-            logger.warning(f"User with ID {user_id} not found")
-            return jsonify({"error": "User not found"}), 404
-        favorite_characters = user.favorite_characters
-        favorite_planets = user.favorite_planets
-        
-        favorite_characters_list = [fav_char.serialize() for fav_char in favorite_characters]
-        favorite_planets_list = [fav_planet.serialize() for fav_planet in favorite_planets]
-        
-        response = {
-            "user_id": user_id,
-            "favorite_characters": favorite_characters_list,
-            "favorite_planets": favorite_planets_list
-        }
-        logger.info(f"Successfully fetched favorites for user ID {user_id}")
-        return jsonify(response), 200
-    except Exception as e:
-        logger.error(f"Error fetching favorites for user ID {user_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/planet/<int:planet_id>', methods=['GET'])
 def get_one_planet(planet_id):
     planet = Planet.query.get(planet_id)
+    if not planet:
+        return jsonify("Error, planet is not found"),404
     return jsonify(planet.serialize()), 200
            
 
@@ -109,6 +91,8 @@ def get_charc():
 @app.route('/character/<int:character_id>', methods=['GET'])
 def get_one_character(character_id):
     get_character = Character.query.get(character_id)
+    if get_character is None:
+        return jsonify({"error": "Character not found"}), 404
     return jsonify(get_character.serialize()), 200
 
 @app.route('/fav_char', methods=['GET'])
@@ -129,9 +113,9 @@ def user_post():
     data = request.get_json()
     new_user = User(
 
-        email=data["email"],
-        password=data["password"],
-        is_active=data["is_active"]
+        email=data["email"],        
+        is_active=data["is_active"],
+        password=data["password"]
     )
     db.session.add(new_user)
     db.session.commit()

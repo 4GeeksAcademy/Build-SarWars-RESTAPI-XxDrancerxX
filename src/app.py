@@ -85,8 +85,8 @@ def get_planet():
 @app.route('/character', methods=['GET'])
 def get_charc():
     characters = Character.query.all()
-    users_list = [character.serialize() for character in characters]
-    return jsonify(users_list), 200
+    characters_list = [character.serialize() for character in characters]
+    return jsonify(characters_list), 200
 
 @app.route('/character/<int:character_id>', methods=['GET'])
 def get_one_character(character_id):
@@ -111,8 +111,9 @@ def get_fav_planets():
 @app.route('/user', methods=['POST'])
 def user_post():
     data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Data is required"}), 400    
     new_user = User(
-
         email=data["email"],        
         is_active=data["is_active"],
         password=data["password"]
@@ -125,6 +126,8 @@ def user_post():
 @app.route('/character', methods=['POST'])
 def person_post():
     data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Data is required"}), 400
     new_person = Character(
 
         name=data["name"],
@@ -140,6 +143,8 @@ def person_post():
 @app.route('/planet', methods=['POST'])
 def planet_post():
     data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Data is required"}), 400
     new_planet = Planet(
 
         name=data["name"],
@@ -156,6 +161,8 @@ def planet_post():
 @app.route('/fav_char', methods=['POST'])
 def fav_char_post():
     data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Data is required"}), 400
     new_char = Favorite_character(
        
         user_id= data["user_id"],
@@ -170,6 +177,8 @@ def fav_char_post():
 @app.route('/fav_planets', methods=['POST'])
 def fav_planets_post():
     data = request.get_json()
+    if data is None:    
+        return jsonify({"error": "Data is required"}), 400
     new_fav_planets = Favorite_Planets(
        
         user_id= data["user_id"],
